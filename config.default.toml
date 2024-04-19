@@ -1,0 +1,275 @@
+#############################
+#                           #
+# viper web server 配置文件 #
+#                           #
+#############################
+
+
+
+########## 部署环境标志
+# 该值关联影响其他配置，如数据库， redis 等涉及不同环境的配置
+# 如 配置为 localhost ， 使用 goutils 获取 mysql 相关实例时将使用 [mysql.localhost] 的配置
+env = "localhost"
+
+
+
+########## server 相关配置
+[server]
+    # server 运行地址，支持 HTTP 端口 ":port" 或 UNIX Socket "unix:/file"
+    addr = ":4869"
+    # gin mode ，可选值： debug 、 test 、 release
+    mode = "debug"
+    # 开启 pprof
+    pprof = true
+    # 开启 prometheus metrics
+    metrics = true
+    # 谷歌adsense client id: ca-pub-ddddd
+    adsense_id = ""
+    # 备案号
+    beian = ""
+    # 是否展示关于页面
+    show_about = true
+    # 开始年份
+    since_year = 2024
+    # host url
+    host_url = ""
+    # 百度统计id
+    baidu_tongji_id = ""
+    # 谷歌分析id
+    gtag_id = ""
+
+
+
+########## 静态文件相关配置
+[statics]
+    selfhost = false
+    # 网页模板路径
+    tmpl_path = "html/*"
+    # 静态文件路径
+    url = "statics"
+    # 是否启用flatpages
+
+
+
+########## flagpages配置
+[flatpages]
+    enable = true
+    nav_name = "flatpages"
+    nav_path = "fp"
+    file_path = "statics/flatpages"
+
+
+
+########## 国际化多语言i18n配置
+# pink-lady的i18n方法采用GNU的xgettext从代码中提取要翻译的文字生成翻译模板pot
+# 使用多语言需要先执行生成并编译po文件，相关脚本在statics/i18n下
+# 通过注册中间件动态设置gettext的语言
+[i18n]
+    # 开启i18n
+    enable = true
+    # gettext的domain参数，必须和mo文件的文件名相同
+    domain = "messages"
+    # gettext的path参数，指定mo文件所在路径，mo文件路径*必须*为 path/en(对应翻译语言名称)/LC_MESSAGES/domain(domain指定的名称).mo
+    path = "statics/i18n"
+
+
+
+########## token bucket 请求频率限制配置
+[ratelimiter]
+    # 是否开启 ratelimiter 请求频率限制，需修改webserver/gin_middlewares.go 中的 TODO 按自身需求实现
+    enable = false
+    # 限频方式： mem->进程内存； redis.<WHICH>->使用用配置文件中对应的 redis 配置，如 redis.localhost
+    type = "mem"
+
+
+
+########## 日志相关配置
+[logging]
+    # 日志级别，可选值： debug info warn error dpanic panic fatal
+    level = "debug"
+    # 日志格式，可选值： json console
+    format = "json"
+    # 日志输出路径： stdout, stderr, logrotate:///path/to/logfile
+    output_paths = ["stdout"]
+    # 是否关闭打印 caller 字段
+    disable_caller = false
+    # 是否关闭打印 stacktrace 字段
+    disable_stacktrace = true
+
+    ## 动态修改日志级别 http 服务配置
+    [logging.atomic_level_server]
+        # http 服务端口
+        addr = ":4870"
+        # 接口 url path
+        path = "/"
+
+    ## 访问日志相关配置
+    [logging.access_logger]
+        # 打印更多访问信息字段
+        enable_details = false
+        # 打印 context 中的 keys 信息，慎用，推荐仅开发调试使用
+        enable_context_keys = false
+        # 打印请求 Header ，慎用，推荐仅开发调试使用
+        enable_request_header = false
+        # 打印请求的表单信息，慎用，推荐仅开发调试使用
+        enable_request_form = false
+        # 打印请求 body ，慎用，严重影响性能
+        enable_request_body = false
+        # 打印响应 body ，慎用，严重影响性能
+        enable_response_body = false
+        # 精确指定不打印日志的 path
+        skip_paths = []
+        # 正则表达式指定不打印日志的 path
+        skip_path_regexps = [
+            "/x/apidocs/.+\\.json",
+            "/x/apidocs/.+\\.js",
+            "/x/apidocs/.+\\.css",
+            "/statics/.*",
+        ]
+        # 慢请求阈值（毫秒）请求处理时间大于该值使用 WARN 级别打印请求日志
+        slow_threshold = 200
+
+    ## 日志输出到文件时的 rotate 配置
+    # 示例： 若 logging.output_paths 配置为： logrotate:///tmp/x.log
+    # 日志会输出到文件 /tmp/x.log 并按以下策略进行 rotate
+    [logging.logrotate]
+        # 备份文件最大保存天数
+        max_age = 30
+        # 最大保存的备份文件数
+        max_backups = 10
+        # 最大日志文件大小 单位： M
+        max_size = 100
+        # 是否压缩备份文件
+        compress = true
+        # 压缩文件名是否使用 localtime
+        localtime = true
+
+
+
+########## sentry 相关配置
+[sentry]
+    # sentry dsn
+    dsn = ""
+    debug = true
+
+
+
+########## apidocs 相关配置
+[apidocs]
+    # 文档标题
+    title = "pink-lady swagger apidocs"
+    # 文档描述
+    desc = "Using pink-lady to develop gin app on fly."
+    # 请求地址，端口要和 server.addr 一致，浏览器访问时需要区分 127.0.0.1 和 localhost
+    host = "localhost:4869"
+    # 请求地址的 basepath
+    basepath = "/"
+    # 支持的请求 schemes
+    schemes = ["http"]
+
+
+
+########## basic auth 相关配置
+[basic_auth]
+    # 登录用户名
+    username = "admin"
+    # 登录密码
+    password = "admin"
+
+
+
+########## MySQL 相关配置
+# mysql 按不同库可以添加多个配置
+[mysql]
+
+    # mysql localhost 环境
+    [mysql.localhost.dbname]
+        dsn = "root:roooooot@tcp(127.0.0.1:3306)/test?charset=utf8mb4&parseTime=True&loc=UTC"
+
+    # mysql other 环境
+    [mysql.other.dbname]
+        dsn = ""
+
+
+
+########## Redis 相关配置
+# redis 按不同连接类型和不同环境添加多个配置
+[redis]
+
+    ## Redis Client 相关配置
+    # Redis Client localhost 环境
+    [redis.localhost]
+        # redis 地址
+        addr = "localhost:6379"
+        # 密码
+        password = ""
+        # 使用的 db 索引
+        db = 0
+        # 连接超时时间（秒）
+        dial_timeout = 5
+        # 读超时（秒）
+        read_timeout = 3
+        # 写超时（秒）
+        write_timeout = 3
+        # 连接池大小: 0 表示 10 * runtime.NumCPU()
+        pool_size = 0
+
+    # Redis Client other 环境
+    [redis.other]
+
+
+    ## Redis Sentinel 相关配置
+    [redis.sentinel]
+
+        # Redis Sentinel prod 环境
+        [redis.sentinel.prod]
+            # master 节点名
+            master_name = ""
+            # sentinel 地址列表
+            sentinel_addrs = [""]
+            # 密码
+            password = ""
+            # db 索引
+            db = 0
+            # 连接超时时间（秒）
+            dial_timeout = 5
+            # 读超时（秒）
+            read_timeout = 3
+            # 写超时（秒）
+            write_timeout = 3
+            # 连接池大小: 0 表示 10 * runtime.NumCPU()
+            pool_size = 0
+
+
+    ## Redis Cluster 相关配置
+    [redis.cluster]
+
+        # Redis Cluster prod 环境
+        [redis.cluster.prod]
+            # 集群节点地址列表
+            addrs = [""]
+            # 密码
+            password = ""
+            # 读超时（秒）
+            read_timeout = 3
+            # 写超时（秒）
+            write_timeout = 3
+
+
+
+[author]
+    name = "axiaoxin"
+    url = "https://axiaoxin.com/profile"
+
+
+
+[friend_link]
+    "阿小信的博客" = "https://blog.axiaoxin.com"
+
+
+
+[sys_notice]
+     md = "markdown格式的系统通知内容"
+     qrtext = "这里添加二维码链接（可选）"
+     start = "2024-03-01 00:00:00"
+     end = "2024-03-01 09:00:00"
